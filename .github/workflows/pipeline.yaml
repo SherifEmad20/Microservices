@@ -1,36 +1,128 @@
-# Starter Pipeline
-# .github/workflows/pipeline.yml
+# # Starter Pipeline
+# # .github/workflows/pipeline.yml
 
-# 1) TRIGGER
+# # 1) TRIGGER
+# on:
+#   workflow_dispatch:
+#   # push:
+#   #   branches: [ <branch> ]     # e.g. main
+#   #   paths:   [ "<path/**>" ]   # optional
+#   # pull_request:
+#   #   branches: [ <branch> ]
+
+# # 2) VARIABLES
+# env:
+#   Image_Name: "microservices"
+
+# # 3) JOBS
+# jobs:
+#   # 1) Build docker image and push to ACR
+#   Build:
+#     runs-on: self-hosted
+#     outputs:
+#       FULL_IMAGE_NAME: ${{ steps.get_tag.outputs.FULL_IMAGE_NAME }}
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       # - name: Login to Azure Container Registry
+#       #   uses: docker/login-action@v3
+#       #   with:
+#       #     registry: ${{ secrets.ACR_REGISTRY }}
+#       #     username: ${{ secrets.ACR_ADMIN_USERNAME }}
+#       #     password: ${{ secrets.ACR_ADMIN_PASSWORD }}
+
+#       - id: get_tag
+#         name: Get hash commit
+#         run: |
+#           set -e
+#           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
+#           image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
+
+#           # echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
+#           echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
+
+#           echo "Docker tag: $docker_tag"
+#           echo "Image Name: $image_Name"
+
+#       # - name: Build and push Docker image
+#       #   uses: docker/build-push-action@v4
+#       #   with:
+#       #     context: .
+#       #     push: true
+#       #     tags: ${{ env.FULL_IMAGE_NAME }}
+#       #     file: ./Dockerfile
+
+#   # 2) Deploy to Azure Kubernetes Service (AKS)
+#   Deploy:
+#     needs: Build
+#     runs-on: self-hosted
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       # - name: Set up Kubeconfig
+#       #   uses: Azure/k8s-set-context@v4
+#       #   with:
+#       #     kubeconfig: ${{ secrets.KUBECONFIG }}
+
+#       # - name: Create Kubernetes secret for ACR
+#       #   uses: Azure/k8s-create-secret@v4
+#       #   with:
+#       #     container-registry-url: ${{ secrets.ACR_REGISTRY }}
+#       #     container-registry-username: ${{ secrets.ACR_ADMIN_USERNAME }}
+#       #     container-registry-password: ${{ secrets.ACR_ADMIN_PASSWORD }}
+#       #     secret-name: registry-pull-secret
+
+#       - name: Update image in Kubernetes deployment
+#         env:
+#           FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
+
+#         run: |
+#           set -e
+#           echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
+
+
+#           # echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
+#           # sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+
+#       - name: Print deployment manifest
+#         env:
+#             FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
+#         run: |
+#           set -e
+
+#           echo "Workspace: $GITHUB_WORKSPACE"
+
+#           # Print the combined deployment manifest
+#           echo "--- Combined Deployment Manifest ---"
+#           cat $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+#           echo "------------------------------------"
+
+#       # - name: Deploy to AKS
+#       #   uses: Azure/k8s-deploy@v4
+#       #   with:
+#       #     namespace: application-dev
+#       #     action: deploy
+#       #     manifests: |
+#       #       Deployment_k8s/Deployment.yaml
+#       #     images: |
+#       #       ${{ env.FULL_IMAGE_NAME }}
+#       #     imagepullsecrets: |
+#       #       registry-pull-secret
+
+
+
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [ <branch> ]     # e.g. main
-  #   paths:   [ "<path/**>" ]   # optional
-  # pull_request:
-  #   branches: [ <branch> ]
 
-# 2) VARIABLES
-env:
-  Image_Name: "microservices"
-
-# 3) JOBS
 jobs:
-  # 1) Build docker image and push to ACR
-  Build:
+  job1:
     runs-on: self-hosted
+    # Map a step output to a job output
     outputs:
-      FULL_IMAGE_NAME: ${{ steps.get_tag.outputs.FULL_IMAGE_NAME }}
+      output1: ${{ steps.get_tag.outputs.test }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # - name: Login to Azure Container Registry
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ${{ secrets.ACR_REGISTRY }}
-      #     username: ${{ secrets.ACR_ADMIN_USERNAME }}
-      #     password: ${{ secrets.ACR_ADMIN_PASSWORD }}
 
       - id: get_tag
         name: Get hash commit
@@ -38,76 +130,14 @@ jobs:
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
           image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
+          echo "Image name is: $image_Name"
 
-          # echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
-          echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
+          echo "fullImageName=$image_Name" >> "$GITHUB_OUTPUT"
 
-          echo "Docker tag: $docker_tag"
-          echo "Image Name: $image_Name"
-
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ${{ env.FULL_IMAGE_NAME }}
-      #     file: ./Dockerfile
-
-  # 2) Deploy to Azure Kubernetes Service (AKS)
-  Deploy:
-    needs: Build
+  job2:
     runs-on: self-hosted
+    needs: job1
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # - name: Set up Kubeconfig
-      #   uses: Azure/k8s-set-context@v4
-      #   with:
-      #     kubeconfig: ${{ secrets.KUBECONFIG }}
-
-      # - name: Create Kubernetes secret for ACR
-      #   uses: Azure/k8s-create-secret@v4
-      #   with:
-      #     container-registry-url: ${{ secrets.ACR_REGISTRY }}
-      #     container-registry-username: ${{ secrets.ACR_ADMIN_USERNAME }}
-      #     container-registry-password: ${{ secrets.ACR_ADMIN_PASSWORD }}
-      #     secret-name: registry-pull-secret
-
-      - name: Update image in Kubernetes deployment
-        env:
-          FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
-
-        run: |
-          set -e
-          echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
-
-
-          # echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
-          # sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
-
-      - name: Print deployment manifest
-        env:
-            FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
-        run: |
-          set -e
-          
-          echo "Workspace: $GITHUB_WORKSPACE"
-
-          # Print the combined deployment manifest
-          echo "--- Combined Deployment Manifest ---"
-          cat $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
-          echo "------------------------------------"
-
-      # - name: Deploy to AKS
-      #   uses: Azure/k8s-deploy@v4
-      #   with:
-      #     namespace: application-dev
-      #     action: deploy
-      #     manifests: |
-      #       Deployment_k8s/Deployment.yaml
-      #     images: |
-      #       ${{ env.FULL_IMAGE_NAME }}
-      #     imagepullsecrets: |
-      #       registry-pull-secret
-
+      - env:
+          IMAGENAME: ${{needs.get_tag.outputs.output1}}
+        run: echo "$IMAGENAME"
