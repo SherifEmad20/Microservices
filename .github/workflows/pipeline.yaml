@@ -69,6 +69,7 @@ jobs:
       - name: Create Kubernetes secret for ACR
         uses: Azure/k8s-create-secret@v4
         with:
+          namespace: application-dev
           container-registry-url: ${{ secrets.ACR_REGISTRY }}
           container-registry-username: ${{ secrets.ACR_ADMIN_USERNAME }}
           container-registry-password: ${{ secrets.ACR_ADMIN_PASSWORD }}
