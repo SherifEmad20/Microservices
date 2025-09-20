@@ -55,7 +55,7 @@ jobs:
   Deploy:
     needs: Build
     env:
-      FULL_IMAGE_NAME: ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}
+      FULL_IMAGE_NAME: ${{needs.Build.outputs.FULL_IMAGE_NAME}}
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -78,8 +78,8 @@ jobs:
         run: |
           set -e
 
-          echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
-          sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+          echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
+          sed -i "s|image: .*|image: $FULL_IMAGE_NAME|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
       - name: Print deployment manifest
         run: |
@@ -100,6 +100,6 @@ jobs:
           manifests: |
             Deployment_k8s/Deployment.yaml
           images: |
-            ${{ env.FULL_IMAGE_NAME }}
+            $FULL_IMAGE_NAME
           imagepullsecrets: |
             registry-pull-secret
