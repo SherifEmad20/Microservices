@@ -42,6 +42,9 @@ jobs:
           echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
           echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
 
+          echo "Docker tag: $docker_tag"
+          echo "Image Name: $image_Name"
+
       # - name: Build and push Docker image
       #   uses: docker/build-push-action@v4
       #   with:
@@ -76,7 +79,7 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          echo "Updated image in Deployment.yaml to ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}"
+          echo "Updated image in Deployment.yaml to ${{ needs.Build.outputs.FULL_IMAGE_NAME }}"
 
 
           # echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
