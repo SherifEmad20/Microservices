@@ -2,7 +2,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: python-microservice-app
-  namespace: microservices-app
   labels:
     app: python-microservice-app
 spec:
