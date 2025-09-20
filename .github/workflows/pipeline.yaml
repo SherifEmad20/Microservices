@@ -56,8 +56,6 @@ jobs:
   # 2) Deploy to Azure Kubernetes Service (AKS)
   Deploy:
     needs: Build
-    env:
-      FULL_IMAGE_NAME: ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -77,6 +75,9 @@ jobs:
       #     secret-name: registry-pull-secret
 
       - name: Update image in Kubernetes deployment
+        env:
+          FULL_IMAGE_NAME: ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}
+
         run: |
           set -e
           echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
@@ -86,6 +87,8 @@ jobs:
           # sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
       - name: Print deployment manifest
+        env:
+            FULL_IMAGE_NAME: ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}
         run: |
           set -e
           
