@@ -17,9 +17,18 @@ env:
 # 3) JOBS
 jobs:
 
+  # 0) Install Docker (if needed)
+  setup-docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Set up Docker
+        uses: docker/setup-docker-action@v4
+
+
   # 1) Login To ACR
   login:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -30,7 +39,7 @@ jobs:
 
   # 2) Get The Latest Git Hash to use as container tag
   get-tag:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: login
     outputs:
       tag: ${{ steps.get_tag.outputs.tag }}
@@ -40,7 +49,7 @@ jobs:
         run: echo "::set-output name=tag::$(echo $GITHUB_SHA | cut -c1-7)"
 
   # 3) Build and Push Docker Image
-  build:
+  build-and-push:
     runs-on: self-hosted
     needs: login
     steps:
