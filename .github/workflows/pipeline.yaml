@@ -37,7 +37,7 @@ jobs:
           image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
 
           echo "IMAGE_NAME=$image_Name" >> $GITHUB_ENV
-          echo "IMAGE_NAME=$image_Name" >> $GITHUB_OUTPUT
+          echo "FULL_IMAGE_NAME=$image_Name" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -50,6 +50,8 @@ jobs:
   # 2) Deploy to Azure Kubernetes Service (AKS)
   Deploy:
     needs: Build
+    env:
+      FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -71,7 +73,10 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          sed -i "s|image: .*|image: ${{ needs.Build.outputs.IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+          # sed -i "s|image: .*|image: ${{ needs.Build.outputs.IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+
+          echo "Updated image in Deployment.yaml to ${{ needs.Build.outputs.FULL_IMAGE_NAME }}"
+          sed  -e "s|image: .*|${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
       - name: Print deployment manifest
         run: |
@@ -92,7 +97,7 @@ jobs:
           manifests: |
             Deployment_k8s/Deployment.yaml
           images: |
-            ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
+            ${{ env.FULL_IMAGE_NAME }}
           imagepullsecrets: |
             registry-pull-secret
 
