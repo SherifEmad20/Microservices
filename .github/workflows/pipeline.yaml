@@ -19,9 +19,9 @@ env:
 jobs:
   # 1) Build docker image and push to ACR
   Build:
-    runs-on: self-hosted
     outputs:
       FULL_IMAGE_NAME: ${{ steps.get_tag.outputs.FULL_IMAGE_NAME }}
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,14 +33,14 @@ jobs:
           username: ${{ secrets.ACR_ADMIN_USERNAME }}
           password: ${{ secrets.ACR_ADMIN_PASSWORD }}
 
-      - id: get_tag
-        name: Get hash commit
+      - name: Get hash commit
+        id: get_tag
         run: |
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
           image_Name="${{ env.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
 
-          # echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
+          echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
           echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
@@ -54,9 +54,9 @@ jobs:
   # 2) Deploy to Azure Kubernetes Service (AKS)
   Deploy:
     needs: Build
-    runs-on: self-hosted
     env:
-      FULL_IMAGE_NAME: ${{ needs.Build.outputs.FULL_IMAGE_NAME }}
+      FULL_IMAGE_NAME: ${{ needs.get_tag.outputs.FULL_IMAGE_NAME }}
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
       - name: Create Kubernetes secret for ACR
         uses: Azure/k8s-create-secret@v4
         with:
-          container-registry-url: ${{ env.ACR_REGISTRY }}
+          container-registry-url: ${{ secrets.ACR_REGISTRY }}
           container-registry-username: ${{ secrets.ACR_ADMIN_USERNAME }}
           container-registry-password: ${{ secrets.ACR_ADMIN_PASSWORD }}
           secret-name: registry-pull-secret
@@ -77,16 +77,14 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
 
-
-          # echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
-          # sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+          echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
+          sed -i "s|image: .*|image: ${{ env.FULL_IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
       - name: Print deployment manifest
         run: |
           set -e
-
+          
           echo "Workspace: $GITHUB_WORKSPACE"
 
           # Print the combined deployment manifest
