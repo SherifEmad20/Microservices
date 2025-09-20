@@ -1,0 +1,29 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: python-microservice-app
+  namespace: microservices-app
+  labels:
+    app: python-microservice-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-microservice-app
+  template:
+    metadata:
+      labels:
+        app: python-microservice-app
+    spec:
+      containers:
+      - name: python-microservice-app
+        image: DOCKER_IMAGE
+        resources:
+          requests:
+            memory: 200M
+            cpu: 100m
+          limits:
+            memory: 500M
+            cpu: 200m
+        ports:
+          - containerPort: 5000
