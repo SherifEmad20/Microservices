@@ -57,7 +57,7 @@ jobs:
       - name: Set up Kubeconfig
         uses: Azure/k8s-set-context@v4
         with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: Create Kubernetes secret for ACR
         uses: Azure/k8s-create-secret@v4
