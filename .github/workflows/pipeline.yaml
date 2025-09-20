@@ -36,7 +36,7 @@ jobs:
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
           echo "IMAGE_TAG=$docker_tag"
           echo "IMAGE_TAG=$docker_tag" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -70,7 +70,7 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          sed -i "s|image: .*|image: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+          sed -i "s|image: .*|image: ${{ needs.Build.outputs.IMAGE_NAME }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
       - name: Print deployment manifest
         run: |
