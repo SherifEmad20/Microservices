@@ -34,16 +34,17 @@ jobs:
         run: |
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
-          echo "IMAGE_TAG=$docker_tag"
-          echo "IMAGE_TAG=$docker_tag" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+          image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
+
+          echo "IMAGE_NAME=$image_Name" >> $GITHUB_ENV
+          echo "IMAGE_NAME=$image_Name" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
+          tags: ${{ env.IMAGE_NAME }}
           file: ./Dockerfile
 
   # 2) Deploy to Azure Kubernetes Service (AKS)
