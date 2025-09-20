@@ -89,7 +89,7 @@ jobs:
           namespace: application-dev
           action: deploy
           manifests: |
-            $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+            Deployment_k8s/Deployment.yaml
           images: |
             ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
           imagepullsecrets: |
