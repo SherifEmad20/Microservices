@@ -16,16 +16,6 @@ env:
 
 # 3) JOBS
 jobs:
-
-  # # 0) Install Docker (if needed)
-  # setup-docker:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     -
-  #       name: Set up Docker
-  #       uses: docker/setup-docker-action@v4
-
-
   # 1) Login To ACR
   login:
     runs-on: self-hosted
@@ -62,7 +52,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ needs.get-tag.outputs.tag }}
-          # file: ./Dockerfile
+          file: ./Dockerfile
 
   # 4) Print image name
   print-image-name:
@@ -72,3 +62,14 @@ jobs:
       - name: Print image name
         run: |
           echo "Image Name: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ needs.get-tag.outputs.tag }}"
+
+
+
+
+  # # 0) Install Docker (if needed)
+  # setup-docker:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     -
+  #       name: Set up Docker
+  #       uses: docker/setup-docker-action@v4
