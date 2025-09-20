@@ -12,45 +12,111 @@ on:
 
 # 2) VARIABLES
 env:
+  # Docker image name and ACR registry
   Image_Name: "microservices"
+  ACR_REGISTRY: "microservicesacrregistry.azurecr.io"
 
 # 3) JOBS
 jobs:
-
-  # 1) Login To ACR
-  login:
+  # 1) Build docker image and push to ACR
+  Build:
+    name: Build and Push Docker image to ACR
+    # Set output variable to be used in the next job
+    outputs:
+      FULL_IMAGE_NAME: ${{ steps.get_tag.outputs.FULL_IMAGE_NAME }}
+    # Runs on a self-hosted runner
     runs-on: self-hosted
     steps:
-      - name: Login to GitHub Container Registry
+      # 1) Checkout the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Login to ACR
+      - name: Login to Azure Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ACR_REGISTRY }}
+          registry: ${{ env.ACR_REGISTRY }}
           username: ${{ secrets.ACR_ADMIN_USERNAME }}
           password: ${{ secrets.ACR_ADMIN_PASSWORD }}
 
-  # 2) Get The Latest Git Hash to use as container tag
-  get-tag:
-    runs-on: self-hosted
-    needs: login
-    outputs:
-      tag: ${{ steps.get_tag.outputs.tag }}
-    steps:
-      - name: Get the latest git tag
+      # 3) Get the short SHA hash to tag the Docker image
+      - name: Get hash commit
         id: get_tag
-        run: echo "::set-output name=tag::$(echo $GITHUB_SHA | cut -c1-7)"
+        run: |
+          set -e
+          docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
+          image_Name="${{ env.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
 
-  # 3) Build and Push Docker Image
-  build:
-    runs-on: self-hosted
-    needs: login
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+          echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
+          echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
 
+      # 4) Build and push the Docker image to ACR
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ needs.get-tag.outputs.tag }}
+          tags: ${{ env.FULL_IMAGE_NAME }}
           file: ./Dockerfile
+
+  # 2) Deploy to Azure Kubernetes Service (AKS)
+  Deploy:
+    name: Deploy to AKS
+    # Depends on the build stage
+    needs: Build
+
+    # Pass the image name from the previous job
+    env:
+      FULL_IMAGE_NAME: ${{needs.Build.outputs.FULL_IMAGE_NAME}}
+
+    # Runs on a self-hosted runner
+    runs-on: self-hosted
+    steps:
+      # 1) Checkout the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Set up Kubeconfig file to connect to AKS cluster
+      - name: Set up Kubeconfig
+        uses: Azure/k8s-set-context@v4
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      # 3) Create Kubernetes secret to pull image from ACR
+      - name: Create Kubernetes secret for ACR
+        uses: Azure/k8s-create-secret@v4
+        with:
+          namespace: application-dev
+          container-registry-url: ${{ secrets.ACR_REGISTRY }}
+          container-registry-username: ${{ secrets.ACR_ADMIN_USERNAME }}
+          container-registry-password: ${{ secrets.ACR_ADMIN_PASSWORD }}
+          secret-name: registry-pull-secret
+
+      # 4) Update the image in the Kubernetes deployment manifest
+      - name: Update image in Kubernetes deployment
+        run: |
+          set -e
+          echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
+          sed -i "s|image: .*|image: $FULL_IMAGE_NAME|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+
+      # 5) Print the deployment manifest for debugging
+      - name: Print deployment manifest
+        run: |
+          set -e
+          # Print the combined deployment manifest
+          echo "--- Combined Deployment Manifest ---"
+          cat $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+          echo "------------------------------------"
+
+      # 6) Deploy to AKS using the updated manifest
+      - name: Deploy to AKS
+        uses: Azure/k8s-deploy@v4
+        with:
+          namespace: application-dev
+          action: deploy
+          manifests: |
+            Deployment_k8s/Deployment.yaml
+          images: |
+            $FULL_IMAGE_NAME
+          imagepullsecrets: |
+            registry-pull-secret
