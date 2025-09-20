@@ -70,18 +70,17 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          sed -i "s|image: .*|image: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}|g" $GITHUB_WORKSPACE//deployment_k8s/deployment.yaml
+          sed -i "s|image: .*|image: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}|g" $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
 
-      - name: Combine and print deployment manifest
+      - name: Print deployment manifest
         run: |
           set -e
-          cd $GITHUB_WORKSPACE//deployment_k8s
-
-          # Combine all YAML files into one
-          cat *.yaml > $GITHUB_WORKSPACE//deployment_k8s/combined-deployment.yaml
+          cd $GITHUB_WORKSPACE/Deployment_k8s
 
           # Print the combined deployment manifest
-          cat combined-deployment.yaml
+          echo "--- Combined Deployment Manifest ---"
+          cat Deployment.yaml
+          echo "------------------------------------"
 
       - name: Deploy to AKS
         uses: Azure/k8s-deploy@v4
@@ -89,7 +88,7 @@ jobs:
           namespace: application-dev
           action: deploy
           manifests: |
-              $GITHUB_WORKSPACE//deployment_k8s/combined-deployment.yaml
+              $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
           images: |
               ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
           imagepullsecrets: |
