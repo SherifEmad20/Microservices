@@ -139,5 +139,5 @@ jobs:
     needs: job1
     steps:
       - env:
-          IMAGENAME: ${{needs.get_tag.outputs.output1}}
+          IMAGENAME: ${{needs.job1.outputs.output1}}
         run: echo "$IMAGENAME"
