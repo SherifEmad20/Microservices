@@ -70,15 +70,15 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          sed -i "s|image: .*|image: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}|g" $GITHUB_WORKSPACE/Microservices/deployment_k8s/deployment.yaml
+          sed -i "s|image: .*|image: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}|g" $GITHUB_WORKSPACE//deployment_k8s/deployment.yaml
 
       - name: Combine and print deployment manifest
         run: |
           set -e
-          cd $GITHUB_WORKSPACE/Microservices/deployment_k8s
+          cd $GITHUB_WORKSPACE//deployment_k8s
 
           # Combine all YAML files into one
-          cat *.yaml > $GITHUB_WORKSPACE/Microservices/deployment_k8s/combined-deployment.yaml
+          cat *.yaml > $GITHUB_WORKSPACE//deployment_k8s/combined-deployment.yaml
 
           # Print the combined deployment manifest
           cat combined-deployment.yaml
@@ -89,7 +89,7 @@ jobs:
           namespace: application-dev
           action: deploy
           manifests: |
-              $GITHUB_WORKSPACE/Microservices/deployment_k8s/combined-deployment.yaml
+              $GITHUB_WORKSPACE//deployment_k8s/combined-deployment.yaml
           images: |
               ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
           imagepullsecrets: |
