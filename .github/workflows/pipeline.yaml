@@ -13,6 +13,7 @@
 # # 2) VARIABLES
 # env:
 #   Image_Name: "microservices"
+    # ACR_REGISTRY: "microservicesacrregistry.azurecr.io"
 
 # # 3) JOBS
 # jobs:
@@ -129,7 +130,7 @@ jobs:
         run: |
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
-          image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
+          image_Name="microservicesacrregistry.azurecr.io/microservice:${docker_tag}"
           echo "Image name is: $image_Name"
 
           echo "fullImageName=$image_Name" >> "$GITHUB_OUTPUT"
