@@ -16,10 +16,7 @@ env:
 
 # 3) JOBS
 jobs:
-
-
-
-  # 1) Login To ACR
+  # 1) Build docker image and push to ACR
   Build:
     runs-on: self-hosted
     steps:
@@ -38,7 +35,7 @@ jobs:
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
           echo "IMAGE_TAG=$docker_tag"
-          echo "IMAGE_TAG=$docker_tag >> $GITHUB_ENV
+          echo "IMAGE_TAG=$docker_tag" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -48,12 +45,4 @@ jobs:
           tags: ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
           file: ./Dockerfile
 
-
-
-  # # 0) Install Docker (if needed)
-  # setup-docker:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     -
-  #       name: Set up Docker
-  #       uses: docker/setup-docker-action@v4
+  # 2) Deploy to Azure Kubernetes Service (AKS)
