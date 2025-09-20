@@ -129,8 +129,10 @@ jobs:
         run: |
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
+          image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
+          echo "Image name is: $image_Name"
 
-          echo "fullImageName=${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}" >> "$GITHUB_OUTPUT"
+          echo "fullImageName=$image_Name" >> "$GITHUB_OUTPUT"
 
   job2:
     runs-on: self-hosted
