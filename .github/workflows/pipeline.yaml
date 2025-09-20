@@ -39,7 +39,7 @@ jobs:
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
           image_Name="${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${docker_tag}"
 
-          echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
+          # echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_ENV"
           echo "FULL_IMAGE_NAME=$image_Name" >> "$GITHUB_OUTPUT"
 
           echo "Docker tag: $docker_tag"
