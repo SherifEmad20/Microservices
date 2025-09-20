@@ -75,11 +75,12 @@ jobs:
       - name: Print deployment manifest
         run: |
           set -e
-          cd $GITHUB_WORKSPACE/Deployment_k8s
+          
+          echo "Workspace: $GITHUB_WORKSPACE"
 
           # Print the combined deployment manifest
           echo "--- Combined Deployment Manifest ---"
-          cat Deployment.yaml
+          cat $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
           echo "------------------------------------"
 
       - name: Deploy to AKS
@@ -88,8 +89,9 @@ jobs:
           namespace: application-dev
           action: deploy
           manifests: |
-              $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
+            $GITHUB_WORKSPACE/Deployment_k8s/Deployment.yaml
           images: |
-              ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
+            ${{ secrets.ACR_REGISTRY }}/${{ env.Image_Name }}:${{ env.IMAGE_TAG }}
           imagepullsecrets: |
-              registry-pull-secret
+            registry-pull-secret
+
