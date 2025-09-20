@@ -18,9 +18,9 @@ env:
 jobs:
   # 1) Build docker image and push to ACR
   Build:
+    runs-on: self-hosted
     outputs:
       FULL_IMAGE_NAME: ${{ steps.get_tag.outputs.FULL_IMAGE_NAME }}
-    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +32,8 @@ jobs:
       #     username: ${{ secrets.ACR_ADMIN_USERNAME }}
       #     password: ${{ secrets.ACR_ADMIN_PASSWORD }}
 
-      - name: Get hash commit
-        id: get_tag
+      - id: get_tag
+        name: Get hash commit
         run: |
           set -e
           docker_tag=$(echo $GITHUB_SHA | cut -c1-7)
@@ -79,7 +79,7 @@ jobs:
       - name: Update image in Kubernetes deployment
         run: |
           set -e
-          echo "Updated image in Deployment.yaml to ${{ needs.Build.outputs.FULL_IMAGE_NAME }}"
+          echo "Updated image in Deployment.yaml to $FULL_IMAGE_NAME"
 
 
           # echo "Updated image in Deployment.yaml to ${{ env.FULL_IMAGE_NAME }}"
