@@ -1,0 +1,69 @@
+# Create service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gh-runner-sa
+  namespace: gh-runner-amazon-linux
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gh-runner-environment
+  namespace: gh-runner-amazon-linux
+data:
+  GH_RUNNERGROUP: default
+  GH_TOKEN: APQM7VUT7LS4BMWIJQJTHYLIZ7Y6M
+  GH_URL: https://github.com/SherifEmad20/Microservices
+  GH_WORK: /work
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gh-runner-amazon-linux
+  namespace: gh-runner-amazon-linux
+spec:
+  serviceName: gh-runner-amazon-linux
+  selector:
+    matchLabels:
+      app: gh-runner-amazon-linux
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gh-runner-amazon-linux
+
+    spec:
+      serviceAccountName: gh-runner-sa
+      containers:
+        - name: gh-runner-amazon-linux
+          securityContext:
+            privileged: true
+          image: sherifemad21/general:gh-runner11
+          imagePullPolicy: Always
+          env:
+            - name: GH_AGENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          envFrom:
+            - configMapRef:
+                name: gh-runner-environment
+          volumeMounts:
+            - name: dockersock
+              mountPath: /var/run/docker.sock
+            - name: agent
+              mountPath: /work
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+  volumeClaimTemplates:
+    - metadata:
+        name: agent
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        # storageClassName: azurefile
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi
