@@ -52,7 +52,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: sherifemad-microservice.s-tech.digital
+    - host: application-dev-microservice.s-tech.digital
       http:
         paths:
         - pathType: Prefix
@@ -64,5 +64,5 @@ spec:
                 number: 5000
   tls:
     - hosts:
-        - sherifemad-microservice.s-tech.digital
-      secretName: secret-tls-stage
+        - application-dev-microservice.s-tech.digital
+      secretName: secret-tls-prod
