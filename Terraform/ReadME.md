@@ -362,7 +362,13 @@ output "aks_cluster_name" - Cluster name
 
 ---
 
-## **10. References**
+## **10. Architecture Diagram**
+
+<img src="App_Infra_diagram.png" alt="architecture diagram" />
+
+---
+
+## **11. References**
 
 - [Azure Kubernetes Service Documentation](https://docs.microsoft.com/en-us/azure/aks/)
 - [Azure Container Registry Documentation](https://docs.microsoft.com/en-us/azure/container-registry/)

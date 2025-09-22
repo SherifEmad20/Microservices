@@ -379,7 +379,13 @@ output "ssh_command" - Ready-to-use SSH command
 
 ---
 
-## **10. References**
+## **10. Architecture Diagram**
+
+<img src="Runner_diagram.png" alt="Runner architecture diagram" />
+
+---
+
+## **11. References**
 
 - [Terraform Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Azure Virtual Machines Documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/)
