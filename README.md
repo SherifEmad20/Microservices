@@ -18,6 +18,14 @@ Once deployment is complete, the following URLs will be available:
 | ----------- | ---------------------------------------------------------------------- | --------------------- |
 | **Grafana** | [Grafana](https://monitoring-stack-grafana-monitoring.s-tech.digital/) | admin / prom-operator |
 
+---
+
+## **Flow Diagram**
+
+<img src="Simple_flow_diagram.png" alt="Flow diagram" />
+
+---
+
 ## **1. Overview**
 
 This project creates an environment for Python microservices with:
